@@ -220,7 +220,7 @@ class MavlinkBackendConfig:
         # Configure whether to launch px4 in the background automatically or not for every vehicle launched
         self.px4_autolaunch: bool = config.get("px4_autolaunch", True)
         self.px4_dir: str = config.get("px4_dir", PegasusInterface().px4_path)
-        self.px4_vehicle_model: str = config.get("px4_vehicle_model", "iris")
+        self.px4_vehicle_model: str = config.get("px4_vehicle_model", "none_iris")
 
         # Configurations to interpret the rotors control messages coming from mavlink
         self.enable_lockstep: bool = config.get("enable_lockstep", True)
