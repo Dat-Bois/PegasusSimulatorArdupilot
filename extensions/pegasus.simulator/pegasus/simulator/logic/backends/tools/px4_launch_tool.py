@@ -17,7 +17,7 @@ class PX4LaunchTool:
     PX4 was already built with 'make px4_sitl_default none'), the vehicle id and the vehicle model. 
     """
 
-    def __init__(self, px4_dir, vehicle_id: int = 0, px4_model: str = "iris"):
+    def __init__(self, px4_dir, vehicle_id: int = 0, px4_model: str = "none_iris"):
         """Construct the PX4LaunchTool object
 
         Args:
@@ -88,7 +88,7 @@ class PX4LaunchTool:
 # ---- Code used for debugging the px4 tool ----
 def main():
 
-    px4_tool = PX4LaunchTool(os.environ["HOME"] + "/PX4-Autopilot")
+    px4_tool = PX4LaunchTool(os.environ["HOME"] + "/forge/PX4-Autopilot")
     px4_tool.launch_px4()
 
     import time
