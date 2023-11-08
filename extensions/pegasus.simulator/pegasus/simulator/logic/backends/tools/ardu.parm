@@ -1,0 +1,5 @@
+# Additional param for X-class ardupilot
+
+# Iris is X frame
+FRAME_CLASS	1
+FRAME_TYPE	1
