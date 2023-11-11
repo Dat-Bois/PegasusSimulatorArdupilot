@@ -16,11 +16,13 @@ class ArdupilotLaunchTool:
     A class that manages the start/stop of a Ardupilot process. It requires only the path to the Ardupilot installation, the vehicle id and the vehicle model. 
     """
 
-    def __init__(self, log_dir: str = None, vehicle_id: int = 1, wipe_eeprom: bool = False, ardupilot_model: str = None):
+    def __init__(self, enable_logs: bool = False, log_dir: str = None, wipe_eeprom: bool = False, vehicle_id: int = 1, ardupilot_model: str = None):
         """Construct the ArdupilotLaunchTool object
 
         Args:
+            enable_logs (bool): A boolean that indicates whether to enable logs or not. Defaults to False.
             log_dir (str): A string with the path to the logs directory. Defaults to this directory/logs
+            wipe_eeprom (bool): A boolean that indicates whether to wipe the eeprom or not. Defaults to False.
             vehicle_id (int): The ID of the vehicle. Defaults to 0.
             ardupilot_model (str): The vehicle model. Defaults to None. # Currently not supported
         """
@@ -35,8 +37,10 @@ class ArdupilotLaunchTool:
         # attr for eeprom
         self.wipe_eeprom = wipe_eeprom
 
-        # Configurations to whether autostart ardupilot (SITL) automatically or have the user launch it manually on another
-        # terminal
+        # Enable logs
+        self.enable_logs = enable_logs
+
+        # Log dir setup
         if log_dir != None:
             self.log_dir = log_dir
         else:
@@ -52,6 +56,7 @@ class ArdupilotLaunchTool:
         """
         parm_path = os.path.dirname(os.path.abspath(__file__)) + "/ardu.parm"
         eeprom = '-w' if self.wipe_eeprom else ''
+        logs = f"--aircraft={self.log_dir}" if self.enable_logs else ''
         self.ardupilot_process = subprocess.Popen(
             [
                 "sim_vehicle.py",
@@ -60,7 +65,7 @@ class ArdupilotLaunchTool:
                 f"--sysid={self.vehicle_id}",
                 f"--add-param-file={parm_path}",
                 #f"--use-dir={self.log_dir}", # we dont need this
-                f"--aircraft={self.log_dir}",
+                logs,
                 eeprom,
             ],
             cwd=self.root_fs.name,
@@ -92,7 +97,7 @@ class ArdupilotLaunchTool:
 # ---- Code used for debugging the ardupilot tool ----
 def main():
 
-    ardupilot_tool = ArdupilotLaunchTool()
+    ardupilot_tool = ArdupilotLaunchTool(enable_logs=True)
     ardupilot_tool.launch_ardupilot()
 
     import time

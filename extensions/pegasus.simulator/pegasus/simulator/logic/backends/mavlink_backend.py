@@ -15,6 +15,7 @@ from pegasus.simulator.logic.state import State
 from pegasus.simulator.logic.backends.backend import Backend
 from pegasus.simulator.logic.interface.pegasus_interface import PegasusInterface
 from pegasus.simulator.logic.backends.tools.px4_launch_tool import PX4LaunchTool
+from pegasus.simulator.logic.backends.tools.ardupilot_launch_tool import ArdupilotLaunchTool
 
 
 class SensorSource:
@@ -222,6 +223,13 @@ class MavlinkBackendConfig:
         self.px4_dir: str = config.get("px4_dir", PegasusInterface().px4_path)
         self.px4_vehicle_model: str = config.get("px4_vehicle_model", "none_iris")
 
+        # Configure whether to launch ardupilot in the background automatically or not for every vehicle launched
+        self.ardupilot_autolaunch: bool = config.get("ardupilot_autolaunch", False)
+        self.ardupilot_vehicle_model: str = config.get("ardupilot_vehicle_model", "none_iris")
+        self.ardupilot_enable_logs: bool = config.get("ardupilot_enable_logs", False)
+        self.ardupilot_log_dir: str = config.get("ardupilot_log_dir", None)
+        self.ardupilot_wipe_eeprom: bool = config.get("ardupilot_wipe_eeprom", False)
+
         # Configurations to interpret the rotors control messages coming from mavlink
         self.enable_lockstep: bool = config.get("enable_lockstep", True)
         self.num_rotors: int = config.get("num_rotors", 4)
@@ -266,6 +274,15 @@ class MavlinkBackend(Backend):
         self.px4_vehicle_model: str = config.px4_vehicle_model  # only needed if px4_autolaunch == True
         self.px4_tool: PX4LaunchTool = None
         self.px4_dir: str = config.px4_dir
+
+        # Check if we need to autolaunch ardupilot in the background or not
+        self.ardupilot_autolaunch: bool = config.ardupilot_autolaunch
+        self.ardupilot_vehicle_model: str = config.ardupilot_vehicle_model # not used yet
+        self.ardupilot_tool: ArdupilotLaunchTool = None
+        self.ardupilot_enable_logs: bool = config.ardupilot_enable_logs
+        self.ardupilot_log_dir: str = config.ardupilot_log_dir
+        self.ardupilot_wipe_eeprom: bool = config.ardupilot_wipe_eeprom
+
 
         # Set the update rate used for sending the messages (TODO - remove this hardcoded value from here)
         self._update_rate: float = config.update_rate
@@ -509,6 +526,17 @@ class MavlinkBackend(Backend):
             self.px4_tool = PX4LaunchTool(self.px4_dir, self._vehicle_id, self.px4_vehicle_model)
             self.px4_tool.launch_px4()
 
+        if self.ardupilot_autolaunch and self.ardupilot_tool is None:
+            carb.log_info("Attempting to launch Ardupilot in background process")
+            self.ardupilot_tool = ArdupilotLaunchTool(
+                self.ardupilot_enable_logs, 
+                self.ardupilot_log_dir, 
+                self.ardupilot_wipe_eeprom, 
+                self._vehicle_id, 
+                self.ardupilot_vehicle_model # not used
+                )
+            self.ardupilot_tool.launch_ardupilot()
+
     def stop(self):
         """Method that when called will handle the stopping of the simulation of vehicle. It will make sure that any open
         mavlink connection will be closed and also that the PX4 background process gets killed (if it was auto-initialized)
@@ -530,6 +558,12 @@ class MavlinkBackend(Backend):
             carb.log_info("Attempting to kill PX4 background process")
             self.px4_tool.kill_px4()
             self.px4_tool = None
+
+        # Close the Ardupilot sitl if it was running
+        if self.ardupilot_autolaunch and self.ardupilot_autolaunch is not None:
+            carb.log_info("Attempting to kill Ardupilot background process")
+            self.ardupilot_tool.kill_ardupilot()
+            self.ardupilot_tool = None
 
     def reset(self):
         """For now does nothing. Here for compatibility purposes only
