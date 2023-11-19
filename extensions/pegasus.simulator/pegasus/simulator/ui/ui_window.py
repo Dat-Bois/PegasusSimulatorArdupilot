@@ -202,19 +202,31 @@ class WidgetWindow(ui.Window):
         """
 
         # Auxiliary function to handle the "switch behaviour" of the buttons that are used to choose between a px4 or ROS2 backend
-        def handle_px4_ros_switch(self, px4_button, ros2_button, button):
+        def handle_px4_ros_switch(px4_button : ui.Button, ros2_button : ui.Button, ardupilot_button : ui.Button, button : str):
 
             # Handle the UI of both buttons switching of and on (To make it prettier)
             if button == "px4":
                 px4_button.enabled = False
                 ros2_button.enabled = True
+                ardupilot_button.enabled = True
                 px4_button.set_style(WidgetWindow.BUTTON_SELECTED_STYLE)
                 ros2_button.set_style(WidgetWindow.BUTTON_BASE_STYLE)
-            else:
+                ardupilot_button.set_style(WidgetWindow.BUTTON_BASE_STYLE)
+            elif button == "ros":
                 px4_button.enabled = True
                 ros2_button.enabled = False
+                ardupilot_button.enabled = True
                 ros2_button.set_style(WidgetWindow.BUTTON_SELECTED_STYLE)
                 px4_button.set_style(WidgetWindow.BUTTON_BASE_STYLE)
+                ardupilot_button.set_style(WidgetWindow.BUTTON_BASE_STYLE)
+            elif button == "ardupilot":
+                px4_button.enabled = True
+                ros2_button.enabled = True
+                ardupilot_button.enabled = False
+                ros2_button.set_style(WidgetWindow.BUTTON_BASE_STYLE)
+                px4_button.set_style(WidgetWindow.BUTTON_BASE_STYLE)
+                ardupilot_button.set_style(WidgetWindow.BUTTON_SELECTED_STYLE)
+            
 
             # Handle the logic of switching between the two operating modes
             self._delegate.set_streaming_backend(button)
@@ -249,32 +261,31 @@ class WidgetWindow(ui.Window):
                 
                 with ui.HStack():
                     # Add a thumbnail image to have a preview of the world that is about to be loaded
-                    with ui.ZStack(width=WidgetWindow.LABEL_PADDING, height=WidgetWindow.BUTTON_HEIGHT * 2):
-                        ui.Rectangle()
-                        ui.Image(
-                            THUMBNAIL, fill_policy=ui.FillPolicy.PRESERVE_ASPECT_FIT, alignment=ui.Alignment.LEFT_CENTER
-                        )
-
                     ui.Spacer(width=WidgetWindow.GENERAL_SPACING)
-                    with ui.VStack():
-                        # Buttons that behave like switches to choose which network interface to use to simulate the control of the vehicle
-                        px4_button = ui.Button(
-                            "PX4",
-                            height=WidgetWindow.BUTTON_HEIGHT * 2,
-                            style=WidgetWindow.BUTTON_SELECTED_STYLE,
-                            enabled=False,
-                        )
-                        ros2_button = ui.Button(
-                            "ROS 2",
-                            height=WidgetWindow.BUTTON_HEIGHT,
-                            style=WidgetWindow.BUTTON_BASE_STYLE,
-                            enabled=True,
-                            visible=False
-                        )
+                    # Buttons that behave like switches to choose which network interface to use to simulate the control of the vehicle
+                    ardupilot_button = ui.Button(
+                        "Ardupilot",
+                        height=WidgetWindow.BUTTON_HEIGHT,
+                        style=WidgetWindow.BUTTON_BASE_STYLE,
+                        enabled=True,
+                    )
+                    px4_button = ui.Button(
+                        "PX4",
+                        height=WidgetWindow.BUTTON_HEIGHT,
+                        style=WidgetWindow.BUTTON_SELECTED_STYLE,
+                        enabled=True,
+                    )
+                    ros2_button = ui.Button(
+                        "ROS 2",
+                        height=WidgetWindow.BUTTON_HEIGHT,
+                        style=WidgetWindow.BUTTON_BASE_STYLE,
+                        enabled=True,
+                    )
 
-                        # Set the auxiliary function to handle the switch between both backends
-                        px4_button.set_clicked_fn(lambda: handle_px4_ros_switch(self, px4_button, ros2_button, "px4"))
-                        ros2_button.set_clicked_fn(lambda: handle_px4_ros_switch(self, px4_button, ros2_button, "ros"))
+                    # Set the auxiliary function to handle the switch between both backends
+                    px4_button.set_clicked_fn(lambda: handle_px4_ros_switch(px4_button, ros2_button, ardupilot_button, "px4"))
+                    ros2_button.set_clicked_fn(lambda: handle_px4_ros_switch(px4_button, ros2_button, ardupilot_button, "ros"))
+                    ardupilot_button.set_clicked_fn(lambda: handle_px4_ros_switch(px4_button, ros2_button, ardupilot_button, "ardupilot"))
 
                 # UI to configure the PX4 settings
                 with ui.CollapsableFrame("PX4 Configurations", collapsed=False):
