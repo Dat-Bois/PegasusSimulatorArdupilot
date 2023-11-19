@@ -88,20 +88,20 @@ class WidgetWindow(ui.Window):
         # Define the UI of the widget window
         with self.frame:
 
-            # Vertical Stack of menus
-            with ui.VStack():
+            # Make it scrollable
+            with ui.ScrollingFrame():
 
-                # Create a frame for selecting which scene to load
-                self._scene_selection_frame()
-                ui.Spacer(height=5)
+                # Vertical Stack of menus
+                with ui.VStack():
 
-                # Create a frame for selecting which vehicle to load in the simulation environment
-                self._robot_selection_frame()
-                ui.Spacer(height=5)
+                    # Create a frame for selecting which scene to load
+                    self._scene_selection_frame()
 
-                # Create a frame for selecting the camera position, and what it should point torwards to
-                self._viewport_camera_frame()
-                ui.Spacer()
+                    # Create a frame for selecting which vehicle to load in the simulation environment
+                    self._robot_selection_frame()
+
+                    # Create a frame for selecting the camera position, and what it should point torwards to
+                    self._viewport_camera_frame()
 
     def _scene_selection_frame(self):
         """
@@ -109,85 +109,92 @@ class WidgetWindow(ui.Window):
         """
 
         # Frame for selecting the simulation environment to load
-        with ui.CollapsableFrame("Scene Selection"):
+        # with ui.CollapsableFrame("Scene Selection"):
+        #     with ui.VStack(height=0, spacing=10, name="frame_v_stack"):
+        #         ui.Spacer(height=WidgetWindow.GENERAL_SPACING)
+
+                # # Iterate over all existing pre-made worlds bundled with this extension
+                # with ui.HStack():
+                #     ui.Label("World Assets", width=WidgetWindow.LABEL_PADDING, height=10.0)
+
+                #     # Combo box with the available environments to select from
+                #     dropdown_menu = ui.ComboBox(0, height=10, name="environments")
+                #     for environment in SIMULATION_ENVIRONMENTS:
+                #         dropdown_menu.model.append_child_item(None, ui.SimpleStringModel(environment))
+
+                #     # Allow the delegate to know which option was selected in the dropdown menu
+                #     self._delegate.set_scene_dropdown(dropdown_menu.model)
+
+                # ui.Spacer(height=0)
+
+        # UI to configure the default latitude, longitude and altitude coordinates
+        with ui.CollapsableFrame("Geographic Coordinates", collapsed=False):
             with ui.VStack(height=0, spacing=10, name="frame_v_stack"):
                 ui.Spacer(height=WidgetWindow.GENERAL_SPACING)
-
-                # Iterate over all existing pre-made worlds bundled with this extension
                 with ui.HStack():
-                    ui.Label("World Assets", width=WidgetWindow.LABEL_PADDING, height=10.0)
 
-                    # Combo box with the available environments to select from
-                    dropdown_menu = ui.ComboBox(0, height=10, name="environments")
-                    for environment in SIMULATION_ENVIRONMENTS:
-                        dropdown_menu.model.append_child_item(None, ui.SimpleStringModel(environment))
+                    # Latitude
+                    ui.Label("Latitude", name="label", width=WidgetWindow.LABEL_PADDING-50)
+                    latitude_field = ui.FloatField(name="latitude", precision=6)
+                    latitude_field.model.set_value(self._delegate._latitude)
+                    self._delegate.set_latitude_field(latitude_field.model)
+                    ui.Circle(name="transform", width=20, height=20, radius=3.5, size_policy=ui.CircleSizePolicy.FIXED)
 
-                    # Allow the delegate to know which option was selected in the dropdown menu
-                    self._delegate.set_scene_dropdown(dropdown_menu.model)
+                    # Longitude
+                    ui.Label("Longitude", name="label", width=WidgetWindow.LABEL_PADDING-50)
+                    longitude_field = ui.FloatField(name="longitude", precision=6)
+                    longitude_field.model.set_value(self._delegate._longitude)
+                    self._delegate.set_longitude_field(longitude_field.model)
+                    ui.Circle(name="transform", width=20, height=20, radius=3.5, size_policy=ui.CircleSizePolicy.FIXED)
 
-                ui.Spacer(height=0)
-
-                # UI to configure the default latitude, longitude and altitude coordinates
-                with ui.CollapsableFrame("Geographic Coordinates", collapsed=False):
-                    with ui.VStack(height=0, spacing=10, name="frame_v_stack"):
-                        with ui.HStack():
-
-                            # Latitude
-                            ui.Label("Latitude", name="label", width=WidgetWindow.LABEL_PADDING-50)
-                            latitude_field = ui.FloatField(name="latitude", precision=6)
-                            latitude_field.model.set_value(self._delegate._latitude)
-                            self._delegate.set_latitude_field(latitude_field.model)
-                            ui.Circle(name="transform", width=20, height=20, radius=3.5, size_policy=ui.CircleSizePolicy.FIXED)
-
-                            # Longitude
-                            ui.Label("Longitude", name="label", width=WidgetWindow.LABEL_PADDING-50)
-                            longitude_field = ui.FloatField(name="longitude", precision=6)
-                            longitude_field.model.set_value(self._delegate._longitude)
-                            self._delegate.set_longitude_field(longitude_field.model)
-                            ui.Circle(name="transform", width=20, height=20, radius=3.5, size_policy=ui.CircleSizePolicy.FIXED)
-
-                            # Altitude
-                            ui.Label("Altitude", name="label", width=WidgetWindow.LABEL_PADDING-50)
-                            altitude_field = ui.FloatField(name="altitude", precision=6)
-                            altitude_field.model.set_value(self._delegate._altitude)
-                            self._delegate.set_altitude_field(altitude_field.model)
-                            ui.Circle(name="transform", width=20, height=20, radius=3.5, size_policy=ui.CircleSizePolicy.FIXED)
-
-                        with ui.HStack():
-                            ui.Button("Set", enabled=True, clicked_fn=self._delegate.on_set_new_global_coordinates)
-                            ui.Button("Reset", enabled=True, clicked_fn=self._delegate.on_reset_global_coordinates)
-                            ui.Button("Make Default", enabled=True, clicked_fn=self._delegate.on_set_new_default_global_coordinates)
-
-                ui.Spacer(height=0)
+                    # Altitude
+                    ui.Label("Altitude", name="label", width=WidgetWindow.LABEL_PADDING-50)
+                    altitude_field = ui.FloatField(name="altitude", precision=6)
+                    altitude_field.model.set_value(self._delegate._altitude)
+                    self._delegate.set_altitude_field(altitude_field.model)
+                    ui.Circle(name="transform", width=20, height=20, radius=3.5, size_policy=ui.CircleSizePolicy.FIXED)
 
                 with ui.HStack():
-                    # Add a thumbnail image to have a preview of the world that is about to be loaded
-                    with ui.ZStack(width=WidgetWindow.LABEL_PADDING, height=WidgetWindow.BUTTON_HEIGHT * 2):
-                        ui.Rectangle()
-                        ui.Image(
-                            WORLD_THUMBNAIL,
-                            fill_policy=ui.FillPolicy.PRESERVE_ASPECT_FIT,
-                            alignment=ui.Alignment.LEFT_CENTER,
-                        )
-
-                    ui.Spacer(width=WidgetWindow.GENERAL_SPACING)
-
-                    with ui.VStack():
-                        # Button for loading a desired scene
-                        ui.Button(
-                            "Load Scene",
-                            height=WidgetWindow.BUTTON_HEIGHT,
-                            clicked_fn=self._delegate.on_load_scene,
-                            style=WidgetWindow.BUTTON_BASE_STYLE,
-                        )
-
-                        # Button to reset the stage
-                        ui.Button(
+                    ui.Button("Set", enabled=True, clicked_fn=self._delegate.on_set_new_global_coordinates)
+                    ui.Button("Reset", enabled=True, clicked_fn=self._delegate.on_reset_global_coordinates)
+                    ui.Button("Make Default", enabled=True, clicked_fn=self._delegate.on_set_new_default_global_coordinates)
+                
+                ui.Spacer(height=WidgetWindow.GENERAL_SPACING)
+                ui.Button(
                             "Clear Scene",
                             height=WidgetWindow.BUTTON_HEIGHT,
                             clicked_fn=self._delegate.on_clear_scene,
                             style=WidgetWindow.BUTTON_BASE_STYLE,
                         )
+
+                # with ui.HStack():
+                #     # Add a thumbnail image to have a preview of the world that is about to be loaded
+                #     with ui.ZStack(width=WidgetWindow.LABEL_PADDING, height=WidgetWindow.BUTTON_HEIGHT * 2):
+                #         ui.Rectangle()
+                #         ui.Image(
+                #             WORLD_THUMBNAIL,
+                #             fill_policy=ui.FillPolicy.PRESERVE_ASPECT_FIT,
+                #             alignment=ui.Alignment.LEFT_CENTER,
+                #         )
+
+                #     ui.Spacer(width=WidgetWindow.GENERAL_SPACING)
+
+                #     with ui.VStack():
+                #         # Button for loading a desired scene
+                #         ui.Button(
+                #             "Load Scene",
+                #             height=WidgetWindow.BUTTON_HEIGHT,
+                #             clicked_fn=self._delegate.on_load_scene,
+                #             style=WidgetWindow.BUTTON_BASE_STYLE,
+                #         )
+
+                #         # Button to reset the stage
+                #         ui.Button(
+                #             "Clear Scene",
+                #             height=WidgetWindow.BUTTON_HEIGHT,
+                #             clicked_fn=self._delegate.on_clear_scene,
+                #             style=WidgetWindow.BUTTON_BASE_STYLE,
+                #         )
 
     def _robot_selection_frame(self):
         """
